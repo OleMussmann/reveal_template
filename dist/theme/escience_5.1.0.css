@@ -8,6 +8,7 @@
   --nlesc-yellow: #FFB213;
   --light-gray: #D8D8D8;
   --dark-gray: #2b2b2b;
+  --gray-transparent: rgba(128, 128, 128, .5);
 }
 
 /*********************************************
@@ -38,6 +39,7 @@ code {
   font-optical-sizing: auto !important;
   font-weight: 500;
   font-style: normal;
+  background-color: var(--gray-transparent);
 }
 
 .reveal h1,
