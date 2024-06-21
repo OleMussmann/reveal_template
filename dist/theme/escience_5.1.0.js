@@ -47,6 +47,8 @@ const decoration_elements = `
 <img id="right_e" src="./files/letter-e.svg" style="transition: right 1s, top 1s; position: absolute; top: 10vh; right: -4vw; width: 4vw; z-index: 3;"></img>
 `
 
+let root = document.documentElement;
+
 function insertDecoration() {
   const contentDiv = document.getElementsByClassName("reveal");
   for (let i = 0; i < contentDiv.length; i++) {
@@ -165,6 +167,8 @@ function addDecorations() {
       document.getElementById("logo_white").style.opacity = 0;
       document.getElementById("logo_part_white").style.opacity = 1;
       currentSlide.classList.remove("has-light-background");
+      root.style.setProperty("--link-color", "var(--nlesc-yellow)");
+      root.style.setProperty("--link-color-hover", "var(--nlesc-blue)");
       console.log("purple overlay");
     } else {
       document.getElementById("purple_overlay").style.opacity = 0;
@@ -180,6 +184,8 @@ function addDecorations() {
       document.getElementById("logo_white").style.opacity = 0;
       document.getElementById("logo_part_white").style.opacity = 0;
       currentSlide.classList.add("has-light-background");
+      root.style.setProperty("--link-color", "var(--nlesc-blue)");
+      root.style.setProperty("--link-color-hover", "var(--nlesc-yellow)");
       console.log("white overlay");
     } else {
       document.getElementById("white_overlay").style.opacity = 0;
@@ -195,6 +201,8 @@ function addDecorations() {
       document.getElementById("logo_white").style.opacity = 0;
       document.getElementById("logo_part_white").style.opacity = 1;
       currentSlide.classList.remove("has-light-background");
+      root.style.setProperty("--link-color", "var(--nlesc-yellow)");
+      root.style.setProperty("--link-color-hover", "var(--nlesc-blue)");
       console.log("black overlay");
     } else {
       document.getElementById("black_overlay").style.opacity = 0;
@@ -210,6 +218,8 @@ function addDecorations() {
       document.getElementById("logo_white").style.opacity = 1;
       document.getElementById("logo_part_white").style.opacity = 0;
       currentSlide.classList.remove("has-light-background");
+      root.style.setProperty("--link-color", "var(--nlesc-yellow)");
+      root.style.setProperty("--link-color-hover", "var(--nlesc-purple)");
       console.log("blue overlay");
     } else {
       document.getElementById("blue_overlay").style.opacity = 0;

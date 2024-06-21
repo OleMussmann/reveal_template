@@ -9,6 +9,10 @@
   --light-gray: #D8D8D8;
   --dark-gray: #2b2b2b;
   --gray-transparent: rgba(128, 128, 128, .5);
+
+  --link-color: var(--nlesc-purple);
+  --link-color-hover: var(--nlesc-yellow);
+
 }
 
 /*********************************************
@@ -76,10 +80,10 @@ code {
  * LINKS
  *********************************************/
 .reveal a {
-  color: var(--nlesc-purple); }
+  color: var(--link-color); }
 
 .reveal a:hover {
-  color: var(--nlesc-yellow); }
+  color: var(--link-color-hover); }
 
 .reveal .roll span:after {
   color: #fff;
