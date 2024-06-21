@@ -220,6 +220,7 @@ function addDecorations() {
     if ( data_state.includes("blue_pane_right"))
     {
       document.getElementById("blue_pane_right").style.opacity = 1;
+      document.getElementById("blue_pane_right").style.transform = "translateY(0)";
       currentSlide.classList.remove("has-dark-background");
       currentSlide.classList.add("has-light-background");
       console.log("blue_pane_right");
@@ -232,6 +233,7 @@ function addDecorations() {
     if ( data_state.includes("blue_pane_left"))
     {
       document.getElementById("blue_pane_left").style.opacity = 1;
+      document.getElementById("blue_pane_left").style.transform = "translateY(0)";
       setLogoStyle("logo_white");
       currentSlide.classList.remove("has-dark-background");
       currentSlide.classList.add("has-light-background");
@@ -245,6 +247,7 @@ function addDecorations() {
     if ( data_state.includes("touch_pane"))
     {
       document.getElementById("touch_pane").style.opacity = 1;
+      document.getElementById("touch_pane").style.transform = "translateY(0)";
       setLogoStyle("logo_color");
       currentSlide.classList.remove("has-light-background");
       currentSlide.classList.add("has-dark-background");
