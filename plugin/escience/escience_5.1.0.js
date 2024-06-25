@@ -1,3 +1,74 @@
+let Escience = {
+  id: 'Escience',
+  init: (deck) => {
+    initDecorations(deck)
+  }
+}
+
+// TODO: Refactor this quick hack into a Reveal plugin form (it works at least)
+function initDecorations (Reveal) {
+
+if (!document.getElementById('syntax_highlighting'))
+{
+  var head  = document.getElementsByTagName('head')[0];
+  var link  = document.createElement('link');
+  link.id   = 'syntax_highlighting';
+  link.rel  = 'stylesheet';
+  link.type = 'text/css';
+  link.href = 'plugin/highlight/monokai.css';
+  link.media = 'all';
+  head.appendChild(link);
+}
+
+if (!document.getElementById('black_base_theme'))
+{
+  var head  = document.getElementsByTagName('head')[0];
+  var link  = document.createElement('link');
+  link.id   = 'black_base_theme';
+  link.rel  = 'stylesheet';
+  link.type = 'text/css';
+  link.href = 'dist/theme/black.css';
+  link.media = 'all';
+  head.appendChild(link);
+}
+
+if (!document.getElementById('nlescCss'))
+{
+  var head  = document.getElementsByTagName('head')[0];
+  var link  = document.createElement('link');
+  link.id   = 'nlescCss';
+  link.rel  = 'stylesheet';
+  link.type = 'text/css';
+  link.href = 'plugin/escience/escience_5.1.0.css';
+  link.media = 'all';
+  head.appendChild(link);
+}
+
+if (!document.getElementById('fonts'))
+{
+  var head  = document.getElementsByTagName('head')[0];
+  var link  = document.createElement('link');
+  link.id   = 'fonts';
+  link.rel  = 'stylesheet';
+  link.type = 'text/css';
+  link.href = 'https://fonts.googleapis.com/css2?family=Assistant:wght@200..800&family=Fira+Code:wght@300..700&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap';
+  link.media = 'all';
+  head.appendChild(link);
+}
+
+if (!document.getElementById('icons'))
+{
+  var head  = document.getElementsByTagName('head')[0];
+  var link  = document.createElement('link');
+  link.id   = 'icons';
+  link.rel  = 'stylesheet';
+  link.type = 'text/css';
+  link.href = 'https://fonts.googleapis.com/icon?family=Material+Icons';
+  link.media = 'all';
+  head.appendChild(link);
+}
+
+
 const decoration_elements = `
 <div id="blue_pane_left" style="transition: opacity 1s; background-color: var(--nlesc-blue); opacity: 0; position: absolute; left: 0; right: 50%; bottom: 0; top: 0; z-index: 2;"></div>
 <div id="blue_pane_right" style="transition: opacity 1s; background-color: var(--nlesc-blue); opacity: 0; position: absolute; left: 50%; right: 0; bottom: 0; top: 0; z-index: 2;"></div>
@@ -47,12 +118,20 @@ const decoration_elements = `
 <img id="right_e" src="./files/letter-e.svg" style="transition: right 1s, top 1s; position: absolute; top: 10vh; right: -4vw; width: 4vw; z-index: 3;"></img>
 `
 
-let root = document.documentElement;
-
 function insertDecoration() {
-  const contentDiv = document.getElementsByClassName("reveal");
-  for (let i = 0; i < contentDiv.length; i++) {
-    contentDiv[i].insertAdjacentHTML("afterbegin", decoration_elements);
+  if ( window.location.search.match( /print-pdf/gi ) ) {
+    const backgrounds = document.getElementsByClassName('slide-background');
+    for (let i = 0; i < backgrounds.length; i++) {
+      backgrounds[i].insertAdjacentHTML("afterbegin", decoration_elements);
+    };
+  } else {
+    // for viewing slides
+    const reveal_div = document.querySelectorAll('div.reveal');
+    // TODO better do this loop with "forEach"
+    for (let i = 0; i < reveal_div.length; i++) {
+      reveal_div[i].insertAdjacentHTML("afterbegin", decoration_elements);
+    };
+    //$('#decoration').remove(); // without this the fadeIn/fadeOut below does not work. why is this necessary?
   };
   addDecorations();
 }
@@ -79,20 +158,6 @@ Reveal.on( 'ready', event => {
 } );
 
 
-var decoration = $('#decoration').html();
-console.log("decoration: ", decoration);
-if ( window.location.search.match( /print-pdf/gi ) ) {
-  // for pdf export
-  // 3. On Reveal.js ready event, copy decoration <div> into each `.slide-background` <div>
-  Reveal.addEventListener( 'ready', function( event ) {
-    $('.slide-background').append(decoration);
-  });
-}
-else {
-  // for viewing slides
-  $('div.reveal').append(decoration);
-  //$('#decoration').remove(); // without this the fadeIn/fadeOut below does not work. why is this necessary?
-};
 function setLogoStyle(style) {
   //style must be one of {"logo_color","logo_white","logo_part_white"}
 
@@ -114,6 +179,8 @@ function getOpacity(data_state) {
 };
 function addDecorations() {
   console.log("set decorations")
+  let root = document.documentElement;
+
 
   var currentSlide = Reveal.getCurrentSlide();
   if (currentSlide.contains(currentSlide.querySelector('footer')))
@@ -411,3 +478,4 @@ function removeDecorations() {
   document.getElementById("blue_strip").style.right = "-" + document.getElementById("blue_strip").offsetWidth + "px";
 };
 
+}

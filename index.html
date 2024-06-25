@@ -2,45 +2,27 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
+    <!-- BEGIN CHANGE ME -->
     <title>TITLE</title>
     <meta name="description" content="PRESENTATION DESCRIPTION">
     <meta name="author" content="AUTHOR NAME">
+    <!-- END CHANGE ME -->
 
-    <link rel="icon" type="image/x-icon" href="./files/favicon-32x32.png">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <link rel="icon" type="image/x-icon" href="./files/favicon-32x32.png">
     <link rel="stylesheet" href="dist/reset.css">
     <link rel="stylesheet" href="dist/reveal.css">
-
-    <!-- theme -->
-    <link rel="stylesheet" href="dist/theme/black.css" id="theme">
-    <link rel="stylesheet" href="dist/theme/escience_5.1.0.css" id="theme">
-
-    <!-- fonts -->
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Assistant:wght@200..800&family=Fira+Code:wght@300..700&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap">
-    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-
-    <!-- Theme used for syntax highlighted code -->
-    <link rel="stylesheet" href="plugin/highlight/monokai.css">
-
-    <!-- Load jQuery -->
-    <script
-      src="https://code.jquery.com/jquery-3.4.1.min.js"
-      integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo="
-      crossorigin="anonymous"></script>
     <script src="http://localhost:35729/livereload.js"></script>
-
   </head>
   <body>
     <div class="reveal">
       <div class="slides">
 
+        <!-- BEGIN YOUR SLIDES -->
         <section
           data-state="blue_overlay yellow_flag yellow_strip purple_half_circle_bottom purple_blob right_e_top"
           data-background-video="./files/Mood video Homepage 2.mp4"
@@ -72,6 +54,7 @@
             </section>
           </section> <!-- end of nested slides/column -->
 
+        <!-- END YOUR SLIDES -->
       </div>
     </div>
 
@@ -83,11 +66,11 @@
     <script src="plugin/notes/notes.js"></script>
     <script src="plugin/search/search.js"></script>
     <script src="plugin/zoom/zoom.js"></script>
+    <script src="plugin/escience/escience_5.1.0.js"></script>
     <!--
     <script src="reveal.js/4.3.1/reveal.js-plugins/menu/menu.js"></script>
     -->
 
-    <script src="dist/theme/escience_5.1.0.js"></script>
 
     <script>
       // More info about initialization & config:
@@ -104,7 +87,7 @@
         scrollProgress: true,
 
         // Learn about plugins: https://revealjs.com/plugins/
-        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes ]
+        plugins: [ RevealMarkdown, RevealHighlight, RevealNotes, Escience ]
       });
     </script>
   </body>
