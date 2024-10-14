@@ -21,3 +21,8 @@ Optionally, the presentation can be refreshed whenever you write changes to the 
   - Depending on your workflow, you could also install it in a virtual environment
 - Serve your presentation with `python serve.py`, it will serve the presentation on default port `8000`
   - Tip: If needed, specify a different port as a command line argument, like `python serve.py 12345`
+
+## Deployment
+- In your GitHub repo, go to Settings -> Pages. Select branch `main`, and click on "Save". Your presentation is now being deployed.
+- On the front page of your repo, click on the cog ⚙️ next to "About" (top right).
+  - Select "Use your GitHub Pages website" and "Save Changes".
