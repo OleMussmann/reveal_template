@@ -1,0 +1,6 @@
+[submodule "dist/plugin/escience_theme"]
+	path = dist/plugin/escience_theme
+	url = git@github.com:OleMussmann/escience_theme.git
+[submodule "dist/plugin/RevealSubtitles"]
+	path = dist/plugin/RevealSubtitles
+	url = git@github.com:OleMussmann/RevealSubtitles.git
