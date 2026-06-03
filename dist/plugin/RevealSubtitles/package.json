@@ -1,0 +1,25 @@
+{
+  "name": "reveal-subtitles",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OleMussmann/RevealSubtitles.git"
+  },
+  "keywords": [
+    "reveal",
+    "reveal.js",
+    "speech-to-text",
+    "STT"
+  ],
+  "author": "Ole Mussmann",
+  "license": "MIT",
+  "description": "A reveal.js plugin that adds real-time, auto-scrolling subtitles to your presentation.",
+    "bugs": {
+    "url": "https://github.com/OleMussmann/RevealSubtitles/issues"
+  },
+  "homepage": "https://github.com/OleMussmann/RevealSubtitles#readme"
+}
