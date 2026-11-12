@@ -1,11 +1,19 @@
-let Escience = {
-  id: 'Escience',
-  init: (deck) => {
-    initDecorations(deck)
-  }
-}
-
-export default Escience;
+// eScience Center decorations for reveal.js.
+//
+// A slide's data-state lists what it shows: a preset ("standard", "title",
+// ...), decoration names ("blue_overlay", "yellow_flag", ...) and optionally
+// a number 0-10 for the overlay opacity in tenths. The plugin turns that into
+// attributes on a decoration root; escience.css positions and animates the
+// decorations from those attributes:
+//
+//   data-show   the decorations to show (plus "footer" if the slide has one)
+//   data-logo   which logo variant is visible: color, white or part-white
+//   --escience-overlay-opacity
+//
+// On screen there is one root in the .reveal element, updated on every slide
+// change. In the overview every slide background gets its own root while the
+// overview is open, so the thumbnails look like their slides. In print view
+// (?print-pdf) every page gets its own root, set once from that page's slide.
 
 const LOGGING = false;
 
@@ -15,736 +23,170 @@ function log (content) {
   }
 }
 
-const black_css = `
-/**
- * Black theme for reveal.js. This is the opposite of the 'white' theme.
- *
- * By Hakim El Hattab, http://hakim.se
- */
+const PRESETS = {
+  standard:    'logo yellow_flag white_overlay',
+  two_pane:    'logo yellow_flag white_overlay blue_pane_right',
+  about:       'logo white_overlay blue_pane_left purple_half_circle_top purple_strip_bottom yellow_half_strip',
+  touch:       'logo blue_overlay touch_pane purple_blob right_e_bottom',
+  keepintouch: 'logo blue_overlay touch_pane purple_blob right_e_bottom',
+  title:       'blue_overlay yellow_flag yellow_strip purple_half_circle_bottom purple_blob right_e_top',
+};
 
-@font-face {
-    font-family: 'Source Sans Pro';
-    src: url('./source-sans-pro-regular.eot');
-    src: url('./source-sans-pro-regular.eot?#iefix') format('embedded-opentype'),
-         url('./source-sans-pro-regular.woff') format('woff'),
-         url('./source-sans-pro-regular.ttf') format('truetype');
-    font-weight: normal;
-    font-style: normal;
+// Decorations that change the logo variant, the link colours (data-escience-links
+// on the slide) or reveal's has-light/dark-background classes on the slide.
+// Later entries take precedence over earlier ones.
+const EFFECTS = [
+  ['purple_overlay',         { logo: 'part-white', links: 'on-dark',  background: ['-light'] }],
+  ['white_overlay',          { logo: 'color',      links: 'on-light', background: ['+light'] }],
+  ['black_overlay',          { logo: 'part-white', links: 'on-dark',  background: ['-light'] }],
+  ['blue_overlay',           { logo: 'white',      links: 'on-blue',  background: ['-light'] }],
+  ['blue_pane_right',        {                                        background: ['-dark', '+light'] }],
+  ['blue_pane_left',         { logo: 'white',                         background: ['-dark', '+light'] }],
+  ['touch_pane',             { logo: 'color',                         background: ['-light', '+dark'] }],
+  ['purple_half_circle_top', { logo: 'part-white' }],
+];
+
+// Overlays let background images, videos and iframes show through at 0.8
+// unless data-state gives a number.
+const BACKGROUND_MEDIA = ['data-background-image', 'data-background-video', 'data-background-iframe'];
+
+function slideState(slide) {
+  const words = (slide.getAttribute('data-state') || '').split(/\s+/).filter(Boolean);
+  const show = new Set();
+  let opacity = BACKGROUND_MEDIA.some(a => slide.hasAttribute(a)) ? 0.8 : 1;
+  for (const word of words) {
+    if (/^(10|[0-9])$/.test(word)) { opacity = Number(word) / 10; continue; }
+    for (const name of (PRESETS[word] || word).split(' ')) show.add(name);
+  }
+  if (slide.querySelector('footer')) show.add('footer');
+
+  let logo = 'color', links = null;
+  const background = [];
+  for (const [name, effect] of EFFECTS) {
+    if (!show.has(name)) continue;
+    logo = effect.logo || logo;
+    links = effect.links || links;
+    background.push(...(effect.background || []));
+  }
+  return { show, opacity, logo, links, background };
 }
 
-@font-face {
-    font-family: 'Source Sans Pro';
-    src: url('./source-sans-pro-italic.eot');
-    src: url('./source-sans-pro-italic.eot?#iefix') format('embedded-opentype'),
-         url('./source-sans-pro-italic.woff') format('woff'),
-         url('./source-sans-pro-italic.ttf') format('truetype');
-    font-weight: normal;
-    font-style: italic;
+function render(root, slide) {
+  const state = slideState(slide);
+  root.dataset.show = [...state.show].join(' ');
+  root.dataset.logo = state.logo;
+  root.style.setProperty('--escience-overlay-opacity', state.opacity);
+
+  // Without a footer the strip slides out with its previous content.
+  const footer = slide.querySelector('footer');
+  if (footer) root.querySelector('.escience-footer').innerHTML = footer.innerHTML;
+
+  if (state.links) slide.dataset.escienceLinks = state.links;
+  else delete slide.dataset.escienceLinks;
+  for (const change of state.background) {
+    slide.classList.toggle(`has-${change.slice(1)}-background`, change[0] === '+');
+  }
+  log(`decorations: ${root.dataset.show} (logo ${state.logo}, opacity ${state.opacity})`);
 }
 
-@font-face {
-    font-family: 'Source Sans Pro';
-    src: url('./source-sans-pro-semibold.eot');
-    src: url('./source-sans-pro-semibold.eot?#iefix') format('embedded-opentype'),
-         url('./source-sans-pro-semibold.woff') format('woff'),
-         url('./source-sans-pro-semibold.ttf') format('truetype');
-    font-weight: 600;
-    font-style: normal;
-}
-
-@font-face {
-    font-family: 'Source Sans Pro';
-    src: url('./source-sans-pro-semibolditalic.eot');
-    src: url('./source-sans-pro-semibolditalic.eot?#iefix') format('embedded-opentype'),
-         url('./source-sans-pro-semibolditalic.woff') format('woff'),
-         url('./source-sans-pro-semibolditalic.ttf') format('truetype');
-    font-weight: 600;
-    font-style: italic;
-}
-
-section.has-light-background, section.has-light-background h1, section.has-light-background h2, section.has-light-background h3, section.has-light-background h4, section.has-light-background h5, section.has-light-background h6 {
-  color: #222;
-}
-
-/*********************************************
- * GLOBAL STYLES
- *********************************************/
-:root {
-  --r-background-color: #191919;
-  --r-main-font: Source Sans Pro, Helvetica, sans-serif;
-  --r-main-font-size: 42px;
-  --r-main-color: #fff;
-  --r-block-margin: 20px;
-  --r-heading-margin: 0 0 20px 0;
-  --r-heading-font: Source Sans Pro, Helvetica, sans-serif;
-  --r-heading-color: #fff;
-  --r-heading-line-height: 1.2;
-  --r-heading-letter-spacing: normal;
-  --r-heading-text-transform: uppercase;
-  --r-heading-text-shadow: none;
-  --r-heading-font-weight: 600;
-  --r-heading1-text-shadow: none;
-  --r-heading1-size: 2.5em;
-  --r-heading2-size: 1.6em;
-  --r-heading3-size: 1.3em;
-  --r-heading4-size: 1em;
-  --r-code-font: monospace;
-  --r-link-color: #42affa;
-  --r-link-color-dark: #068de9;
-  --r-link-color-hover: #8dcffc;
-  --r-selection-background-color: rgba(66, 175, 250, 0.75);
-  --r-selection-color: #fff;
-  --r-overlay-element-bg-color: 240, 240, 240;
-  --r-overlay-element-fg-color: 0, 0, 0;
-}
-
-.reveal-viewport {
-  background: #191919;
-  background-color: var(--r-background-color);
-}
-
-.reveal {
-  font-family: var(--r-main-font);
-  font-size: var(--r-main-font-size);
-  font-weight: normal;
-  color: var(--r-main-color);
-}
-
-.reveal ::selection {
-  color: var(--r-selection-color);
-  background: var(--r-selection-background-color);
-  text-shadow: none;
-}
-
-.reveal ::-moz-selection {
-  color: var(--r-selection-color);
-  background: var(--r-selection-background-color);
-  text-shadow: none;
-}
-
-.reveal .slides section,
-.reveal .slides section > section {
-  line-height: 1.3;
-  font-weight: inherit;
-}
-
-/*********************************************
- * HEADERS
- *********************************************/
-.reveal h1,
-.reveal h2,
-.reveal h3,
-.reveal h4,
-.reveal h5,
-.reveal h6 {
-  margin: var(--r-heading-margin);
-  color: var(--r-heading-color);
-  font-family: var(--r-heading-font);
-  font-weight: var(--r-heading-font-weight);
-  line-height: var(--r-heading-line-height);
-  letter-spacing: var(--r-heading-letter-spacing);
-  text-transform: var(--r-heading-text-transform);
-  text-shadow: var(--r-heading-text-shadow);
-  word-wrap: break-word;
-}
-
-.reveal h1 {
-  font-size: var(--r-heading1-size);
-}
-
-.reveal h2 {
-  font-size: var(--r-heading2-size);
-}
-
-.reveal h3 {
-  font-size: var(--r-heading3-size);
-}
-
-.reveal h4 {
-  font-size: var(--r-heading4-size);
-}
-
-.reveal h1 {
-  text-shadow: var(--r-heading1-text-shadow);
-}
-
-/*********************************************
- * OTHER
- *********************************************/
-.reveal p {
-  margin: var(--r-block-margin) 0;
-  line-height: 1.3;
-}
-
-/* Remove trailing margins after titles */
-.reveal h1:last-child,
-.reveal h2:last-child,
-.reveal h3:last-child,
-.reveal h4:last-child,
-.reveal h5:last-child,
-.reveal h6:last-child {
-  margin-bottom: 0;
-}
-
-/* Ensure certain elements are never larger than the slide itself */
-.reveal img,
-.reveal video,
-.reveal iframe {
-  max-width: 95%;
-  max-height: 95%;
-}
-
-.reveal strong,
-.reveal b {
-  font-weight: bold;
-}
-
-.reveal em {
-  font-style: italic;
-}
-
-.reveal ol,
-.reveal dl,
-.reveal ul {
-  display: inline-block;
-  text-align: left;
-  margin: 0 0 0 1em;
-}
-
-.reveal ol {
-  list-style-type: decimal;
-}
-
-.reveal ul {
-  list-style-type: disc;
-}
-
-.reveal ul ul {
-  list-style-type: square;
-}
-
-.reveal ul ul ul {
-  list-style-type: circle;
-}
-
-.reveal ul ul,
-.reveal ul ol,
-.reveal ol ol,
-.reveal ol ul {
-  display: block;
-  margin-left: 40px;
-}
-
-.reveal dt {
-  font-weight: bold;
-}
-
-.reveal dd {
-  margin-left: 40px;
-}
-
-.reveal blockquote {
-  display: block;
-  position: relative;
-  width: 70%;
-  margin: var(--r-block-margin) auto;
-  padding: 5px;
-  font-style: italic;
-  background: rgba(255, 255, 255, 0.05);
-  box-shadow: 0px 0px 2px rgba(0, 0, 0, 0.2);
-}
-
-.reveal blockquote p:first-child,
-.reveal blockquote p:last-child {
-  display: inline-block;
-}
-
-.reveal q {
-  font-style: italic;
-}
-
-.reveal pre {
-  display: block;
-  position: relative;
-  width: 90%;
-  margin: var(--r-block-margin) auto;
-  text-align: left;
-  font-size: 0.55em;
-  font-family: var(--r-code-font);
-  line-height: 1.2em;
-  word-wrap: break-word;
-  box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.15);
-}
-
-.reveal code {
-  font-family: var(--r-code-font);
-  text-transform: none;
-  tab-size: 2;
-}
-
-.reveal pre code {
-  display: block;
-  padding: 5px;
-  overflow: auto;
-  max-height: 400px;
-  word-wrap: normal;
-}
-
-.reveal .code-wrapper {
-  white-space: normal;
-}
-
-.reveal .code-wrapper code {
-  white-space: pre;
-}
-
-.reveal table {
-  margin: auto;
-  border-collapse: collapse;
-  border-spacing: 0;
-}
-
-.reveal table th {
-  font-weight: bold;
-}
-
-.reveal table th,
-.reveal table td {
-  text-align: left;
-  padding: 0.2em 0.5em 0.2em 0.5em;
-  border-bottom: 1px solid;
-}
-
-.reveal table th[align=center],
-.reveal table td[align=center] {
-  text-align: center;
-}
-
-.reveal table th[align=right],
-.reveal table td[align=right] {
-  text-align: right;
-}
-
-.reveal table tbody tr:last-child th,
-.reveal table tbody tr:last-child td {
-  border-bottom: none;
-}
-
-.reveal sup {
-  vertical-align: super;
-  font-size: smaller;
-}
-
-.reveal sub {
-  vertical-align: sub;
-  font-size: smaller;
-}
-
-.reveal small {
-  display: inline-block;
-  font-size: 0.6em;
-  line-height: 1.2em;
-  vertical-align: top;
-}
-
-.reveal small * {
-  vertical-align: top;
-}
-
-.reveal img {
-  margin: var(--r-block-margin) 0;
-}
-
-/*********************************************
- * LINKS
- *********************************************/
-.reveal a {
-  color: var(--r-link-color);
-  text-decoration: none;
-  transition: color 0.15s ease;
-}
-
-.reveal a:hover {
-  color: var(--r-link-color-hover);
-  text-shadow: none;
-  border: none;
-}
-
-.reveal .roll span:after {
-  color: #fff;
-  background: var(--r-link-color-dark);
-}
-
-/*********************************************
- * Frame helper
- *********************************************/
-.reveal .r-frame {
-  border: 4px solid var(--r-main-color);
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.15);
-}
-
-.reveal a .r-frame {
-  transition: all 0.15s linear;
-}
-
-.reveal a:hover .r-frame {
-  border-color: var(--r-link-color);
-  box-shadow: 0 0 20px rgba(0, 0, 0, 0.55);
-}
-
-/*********************************************
- * NAVIGATION CONTROLS
- *********************************************/
-.reveal .controls {
-  color: var(--r-link-color);
-}
-
-/*********************************************
- * PROGRESS BAR
- *********************************************/
-.reveal .progress {
-  background: rgba(0, 0, 0, 0.2);
-  color: var(--r-link-color);
-}
-
-/*********************************************
- * PRINT BACKGROUND
- *********************************************/
-@media print {
-  .backgrounds {
-    background-color: var(--r-background-color);
+// In every .stepper inside `scope`, the last shown .step (a plain one, or a
+// fragment that is visible) gets the class current-step; escience.css
+// highlights it and shows only its details.
+function markSteps(scope) {
+  for (const stepper of scope.querySelectorAll('.stepper')) {
+    const steps = [...stepper.querySelectorAll('.step')];
+    const current = steps.filter(s => !s.classList.contains('fragment') || s.classList.contains('visible')).at(-1);
+    for (const step of steps) step.classList.toggle('current-step', step === current);
   }
 }
-`;
 
-const monokai_css = `
-/*
-Monokai style - ported by Luigi Maselli - http://grigio.org
-*/
+let template;
 
-.hljs {
-  display: block;
-  overflow-x: auto;
-  padding: 0.5em;
-  background: #272822;
-  color: #ddd;
+function createRoot(parent) {
+  template ??= Object.assign(document.createElement('template'), { innerHTML: DECORATIONS });
+  const root = template.content.firstElementChild.cloneNode(true);
+  parent.prepend(root);
+  return root;
 }
 
-.hljs-tag,
-.hljs-keyword,
-.hljs-selector-tag,
-.hljs-literal,
-.hljs-strong,
-.hljs-name {
-  color: #f92672;
-}
+const Escience = () => {
+  let deck, root;
 
-.hljs-code {
-  color: #66d9ef;
-}
+  const update = () => {
+    markSteps(deck.getCurrentSlide());
+    if (!deck.isOverview()) render(root, deck.getCurrentSlide());
+  };
+  const ready = () => { markSteps(deck.getRevealElement()); update(); };
+  const steps = () => markSteps(deck.getCurrentSlide());
 
-.hljs-class .hljs-title {
-  color: white;
-}
+  const thumbnailRoots = () => deck.getRevealElement().querySelectorAll('.backgrounds .escience-decorations');
+  const showOverview = () => {
+    root.dataset.show = '';
+    for (const slide of deck.getSlides()) {
+      if (slide.slideBackgroundElement) render(createRoot(slide.slideBackgroundElement), slide);
+    }
+  };
+  const hideOverview = () => {
+    for (const thumbnail of thumbnailRoots()) thumbnail.remove();
+    update();
+  };
 
-.hljs-attribute,
-.hljs-symbol,
-.hljs-regexp,
-.hljs-link {
-  color: #bf79db;
-}
+  return {
+    id: 'Escience',
+    init: (reveal) => {
+      deck = reveal;
+      if (deck.isPrintView()) {
+        deck.on('pdf-ready', () => {
+          for (const page of deck.getRevealElement().querySelectorAll('.pdf-page')) {
+            const slide = page.querySelector('section');
+            const background = page.querySelector('.slide-background');
+            markSteps(page);
+            if (slide && background) render(createRoot(background), slide);
+          }
+        });
+        return;
+      }
+      root = createRoot(deck.getRevealElement());
+      deck.on('ready', ready);
+      deck.on('slidechanged', update);
+      deck.on('fragmentshown', steps);
+      deck.on('fragmenthidden', steps);
+      deck.on('overviewshown', showOverview);
+      deck.on('overviewhidden', hideOverview);
+    },
+    destroy: () => {
+      if (!root) return;
+      deck.off('ready', ready);
+      deck.off('slidechanged', update);
+      deck.off('fragmentshown', steps);
+      deck.off('fragmenthidden', steps);
+      deck.off('overviewshown', showOverview);
+      deck.off('overviewhidden', hideOverview);
+      for (const thumbnail of thumbnailRoots()) thumbnail.remove();
+      root.remove();
+    },
+  };
+};
 
-.hljs-string,
-.hljs-bullet,
-.hljs-subst,
-.hljs-title,
-.hljs-section,
-.hljs-emphasis,
-.hljs-type,
-.hljs-built_in,
-.hljs-builtin-name,
-.hljs-selector-attr,
-.hljs-selector-pseudo,
-.hljs-addition,
-.hljs-variable,
-.hljs-template-tag,
-.hljs-template-variable {
-  color: #a6e22e;
-}
+export default Escience;
 
-.hljs-comment,
-.hljs-quote,
-.hljs-deletion,
-.hljs-meta {
-  color: #75715e;
-}
-
-.hljs-keyword,
-.hljs-selector-tag,
-.hljs-literal,
-.hljs-doctag,
-.hljs-title,
-.hljs-section,
-.hljs-type,
-.hljs-selector-id {
-  font-weight: bold;
-}
-`;
-
-const escience_css = `
-/*********************************************
- * COLORS
- *********************************************/
-
-:root {
-  --nlesc-blue: #009DDD;
-  --nlesc-purple: #380339;
-  --nlesc-yellow: #FFB213;
-  --light-gray: #D8D8D8;
-  --dark-gray: #2b2b2b;
-  --gray-transparent: rgba(128, 128, 128, .5);
-
-  --link-color: var(--nlesc-purple);
-  --link-color-hover: var(--nlesc-yellow);
-
-}
-
-/*********************************************
- * GLOBAL STYLES
- *********************************************/
-
-p, div, ul {
-  font-family: "Assistant", sans-serif !important;
-  font-optical-sizing: auto;
-  font-weight: 400 !important;
-  font-style: normal;
-}
-
-h1, h2, h3 {
-  font-family: "Nunito" !important;
-  font-weight: 700 !important;
-}
-
-h4, h5 {
-  font-family: "Assistant", sans-serif !important;
-  font-optical-sizing: auto;
-  font-weight: 700 !important;
-  font-style: normal;
-}
-
-code {
-  font-family: "Fira Code", monospace !important;
-  font-optical-sizing: auto !important;
-  font-weight: 500;
-  font-style: normal;
-  background-color: var(--gray-transparent);
-}
-
-.reveal h1,
-.reveal h2,
-.reveal h3,
-.reveal h4,
-.reveal h5,
-.reveal h6 {
-  text-transform: none;
-}
-
-.reveal {
-  font-size: 36px; }  /* make stuff smaller */
-
-::selection {
-  color: #0f0;
-  background: var(--nlesc-purple);
-  text-shadow: none; }
-
-::-moz-selection {
-  color: #fff;
-  background: var(--nlesc-purple);
-  text-shadow: none; }
-
-
-/*********************************************
- * CUSTOM COLORS
- *********************************************/
-.primary { color: var(--nlesc-blue) !important; }
-.secondary { color: var(--nlesc-purple) !important; }
-.tertiary { color: var(--light-gray) !important; }
-
-/*********************************************
- * LINKS
- *********************************************/
-.reveal a {
-  color: var(--link-color); }
-
-.reveal a:hover {
-  color: var(--link-color-hover); }
-
-.reveal .roll span:after {
-  color: #fff;
-  background: var(--nlesc-blue); }
-
-/*********************************************
- * IMAGES
- *********************************************/
-.reveal section img { /* undo stupid img frames */
-  background: none;
-  border: none;
-  box-shadow: none;
-}
-
-.reveal a:hover img {
-  border-color: var(--nlesc-blue); }
-
-/*********************************************
- * HIGHLIGHT COLORS
- *********************************************/
-
-.reveal .slides section .fragment.highlight-blue.visible {
-  color: var(--nlesc-blue); }
-
-/*********************************************
- * NAVIGATION CONTROLS
- *********************************************/
-.reveal .controls {
-  color: var(--nlesc-yellow); }
-
-/*********************************************
- * PROGRESS BAR
- *********************************************/
-.reveal .progress {
-  background: rgba(0, 0, 0, 0.2);
-  color: var(--nlesc-yellow); }
-
-.reveal .progress span {
-  background: var(--nlesc-yellow);
-  -webkit-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
-  -moz-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
-  transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985); }
-
-/*********************************************
- * FOOTER
- *********************************************/
-
-.slides .footer {
-  font-size: x-small !important;
-  width: 100%;
-  clear: both;
-/*  padding: 50px 0 0 0;*/
-}
-
-/*********************************************
- * PRINT BACKGROUND
- *********************************************/
-@media print {
-  .backgrounds {
-    background-color: var(--dark-gray); } }
-
-/*********************************************
- * DIM BACKGROUND PICTURES
- *********************************************/
-.dim .backgrounds {
-	-webkit-filter: brightness(.4) !important;
-	-moz-filter: brightness(.4) !important;
-	-o-filter: brightness(.4) !important;
-	-ms-filter: brightness(.4) !important;
-	filter: brightness(.4) !important;
-  -webkit-transition: -webkit-filter 100ms linear;
-  transition: filter 100ms linear;
-}
-
-.dim_3 .backgrounds {
-	-webkit-filter: brightness(.3) !important;
-	-moz-filter: brightness(.3) !important;
-	-o-filter: brightness(.3) !important;
-	-ms-filter: brightness(.3) !important;
-	filter: brightness(.3) !important;
-  -webkit-transition: -webkit-filter 100ms linear;
-  transition: filter 100ms linear;
-}
-
-.dim_8 .backgrounds {
-	-webkit-filter: brightness(.8) !important;
-	-moz-filter: brightness(.8) !important;
-	-o-filter: brightness(.8) !important;
-	-ms-filter: brightness(.8) !important;
-	filter: brightness(.8) !important;
-  -webkit-transition: -webkit-filter 100ms linear;
-  transition: filter 100ms linear;
-}
-
-.backgrounds {
-	-webkit-filter: brightness(1) !important;
-	-moz-filter: brightness(1) !important;
-	-o-filter: brightness(1) !important;
-	-ms-filter: brightness(1) !important;
-	filter: brightness(1) !important;
-  -webkit-transition: -webkit-filter 1s linear;
-  transition: filter 1s linear;
-}
-
-/*********************************************
- * ALLOW FOR DECORATIONS
- *********************************************/
-.slides {
-	/* puts the slide content above overlays and decorations*/
-	z-index: 10 !important;
-}
-
-.speaker-notes {
-	/* puts the slide content above overlays and decorations*/
-	z-index: 3 !important;
-}
-
-footer {
-	display: none !important;
-}
-`;
-
-// TODO: Refactor this quick hack into a Reveal plugin form (it works at least)
-const initDecorations = function(Reveal) {
-
-if (!document.getElementById('fonts'))
-{
-  var head  = document.getElementsByTagName('head')[0];
-  var link  = document.createElement('link');
-  link.id   = 'fonts';
-  link.rel  = 'stylesheet';
-  link.type = 'text/css';
-  link.href = 'https://fonts.googleapis.com/css2?family=Assistant:wght@200..800&family=Fira+Code:wght@300..700&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap';
-  link.media = 'all';
-  head.appendChild(link);
-}
-
-if (!document.getElementById('icons'))
-{
-  var head  = document.getElementsByTagName('head')[0];
-  var link  = document.createElement('link');
-  link.id   = 'icons';
-  link.rel  = 'stylesheet';
-  link.type = 'text/css';
-  link.href = 'https://fonts.googleapis.com/icon?family=Material+Icons';
-  link.media = 'all';
-  head.appendChild(link);
-}
-
-const decoration_elements = `
-<div id="blue_pane_left" style="transition: opacity 1s; background-color: var(--nlesc-blue); opacity: 0; position: absolute; left: 0; right: 50%; bottom: 0; top: 0; z-index: 2;"></div>
-<div id="blue_pane_right" style="transition: opacity 1s; background-color: var(--nlesc-blue); opacity: 0; position: absolute; left: 50%; right: 0; bottom: 0; top: 0; z-index: 2;"></div>
-<div id="touch_pane" style="background-color: white; transition: opacity 1s; opacity: 0; position: absolute; left: 0; right: 66.6%; bottom: 0; top: 0; display: flex; align-items: center; justify-content: center; z-index: 2;">
-  <h1 style="color: black; text-align: left;">Let's stay<br>in touch</h1>
+const DECORATIONS = `<div class="escience-decorations">
+<div class="escience-blue-pane-left"></div>
+<div class="escience-blue-pane-right"></div>
+<div class="escience-touch-pane">
+  <h1>Let's stay<br>in touch</h1>
 </div>
-<div id="purple_half_circle_top" style="transition: top 1s; opacity: 1; position: absolute; background-color: var(--nlesc-purple); left: 0; top: -17vw; width: 34vw; height: 17vw; border-radius: 0 0 20vw 20vw; z-index: 2;"></div>
-<div id="yellow_half_strip" style="opacity: 1; transition: bottom 1s; position: absolute; background-color: var(--nlesc-yellow); right: 50%; bottom: -25vw; width: 17vw; height: 25vw; border-radius: 20vw 0 0 0; z-index: 2;"></div>
-<div id="purple_strip_bottom" style="opacity: 1; transition: bottom 1s; position: absolute; background-color: var(--nlesc-purple); right: calc(50% + 17vw); bottom: -10vw; width: 16vw; height: 10vw; border-radius: 20vw 20vw 0 0; z-index: 2;"></div>
-<div id="logo_color" style="transition: opacity 1s, left 1s; opacity: 0; position: absolute; left: -12vw; top: 1.5vh; z-index: 2;">
+<div class="escience-purple-half-circle-top"></div>
+<div class="escience-yellow-half-strip"></div>
+<div class="escience-purple-strip-bottom"></div>
+<div class="escience-logo-color escience-logo">
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
    viewBox="0 0 182.94 50.27"
-   version="1.1"
-   style="width: 12vw;">
+   version="1.1">
   <metadata
      id="metadata1137">
     <rdf:RDF>
@@ -876,7 +318,7 @@ const decoration_elements = `
      id="path1132" />
 </svg>
 </div>
-<div id="logo_part_white" style="transition: opacity 1s, left 1s; opacity: 0; position: absolute; left: -12vw; top: 1.5vh; z-index: 2;">
+<div class="escience-logo-part-white escience-logo">
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -884,8 +326,7 @@ const decoration_elements = `
    xmlns="http://www.w3.org/2000/svg"
    viewBox="0 0 182.94 50.27"
    version="1.1"
-   inkscape:version="1.0.2 (1.0.2+r75+1)"
-    style="width: 12vw;">
+   inkscape:version="1.0.2 (1.0.2+r75+1)">
   <sodipodi:namedview
      pagecolor="#505050"
      bordercolor="#eeeeee"
@@ -1022,7 +463,7 @@ const decoration_elements = `
      style="fill:#ffffff;fill-opacity:1" />
 </svg>
 </div>
-<div id="logo_white" style="transition: opacity 1s, left 1s; opacity: 0; position: absolute; left: -12vw; top: 1.5vh; z-index: 2;">
+<div class="escience-logo-white escience-logo">
 <svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
@@ -1031,7 +472,6 @@ const decoration_elements = `
    xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
    viewBox="0 0 182.94 50.27"
    version="1.1"
-   style="width: 12vw;"
 >
   <metadata
      id="metadata1137">
@@ -1186,18 +626,18 @@ const decoration_elements = `
      style="fill:#ffffff;fill-opacity:1" />
 </svg>
 </div>
-<div id="purple_overlay" style="background-color: var(--nlesc-purple); opacity: 0; transition: opacity 1s; position: absolute; left: 0; right: 0; bottom: 0; top: 0; z-index: 1;">
+<div class="escience-purple-overlay">
 </div>
-<div id="blue_overlay" style="background-color: var(--nlesc-blue); opacity: 0; transition: opacity 1s; position: absolute; left: 0; right: 0; bottom: 0; top: 0; z-index: 1;">
+<div class="escience-blue-overlay">
 </div>
-<div id="white_overlay" style="background-color: white; opacity: 0; transition: opacity 1s; position: absolute; left: 0; right: 0; bottom: 0; top: 0; z-index: 1;">
+<div class="escience-white-overlay">
 </div>
-<div id="black_overlay" style="background-color: black; opacity: 0; transition: opacity 1s; position: absolute; left: 0; right: 0; bottom: 0; top: 0; z-index: 1;">
+<div class="escience-black-overlay">
 </div>
-<div id="yellow_strip" style="background-color: var(--nlesc-yellow); transition: left 1s; width: 10vw; height: 70vh; border-radius: 10vw 10vw 0 0; z-index: 2; position: absolute; left: -10vw; bottom: 0;">
+<div class="escience-yellow-strip">
 </div>
-<div id="yellow_flag" style="background-color: var(--nlesc-yellow); transition: left 1s, bottom 1s; width: 10vh; height: 12vh; border-radius: 0 6vh 6vh 0; z-index: 3; position: absolute; left: -10vh; bottom: 5vh; margin: 0; padding: 0;">
-  <svg id="left_e" style="position: absolute; height: 10vh; margin: 1vh 0; padding: 0;" viewBox="0 0 27 59" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<div class="escience-yellow-flag">
+  <svg viewBox="0 0 27 59" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
     <defs>
         <polygon id="path-1" points="0 0.132265672 26.8359 0.132265672 26.8359 33.3422209 0 33.3422209"></polygon>
         <polygon id="path-3" points="0 0.662473134 25.2148 0.662473134 25.2148 18.629294 0 18.629294"></polygon>
@@ -1226,15 +666,14 @@ const decoration_elements = `
     </g>
 </svg>
 </div>
-<div id="purple_half_circle_bottom" style="transition: bottom 1s; background-color: var(--nlesc-purple); width: 20vw; height: 10vw; border-radius: 20vw 20vw 0 0; z-index: 2; position: absolute; left: 0; bottom: -10vw;">
-<svg id="left_e"
+<div class="escience-purple-half-circle-bottom">
+<svg
    xmlns:dc="http://purl.org/dc/elements/1.1/"
    xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
    xmlns:svg="http://www.w3.org/2000/svg"
    xmlns="http://www.w3.org/2000/svg"
    viewBox="0 0 182.94 50.27"
-   version="1.1"
-   style="position: absolute; bottom: 2vw; left: 6vw; width: 8vw;">
+   version="1.1">
   <metadata
      id="metadata1137">
     <rdf:RDF>
@@ -1384,397 +823,12 @@ const decoration_elements = `
 </svg>
 
 </div>
-<div id="purple_blob" style="transition: top 1s; position: absolute; display: flex; right: 0; top: -50vh; z-index: 2;">
-  <div style="background-color: var(--nlesc-purple); width: 10vw; height: 25vh; border-radius: 0 0 10vw 10vw;">
-  </div>
-  <div style="background-color: var(--nlesc-purple); width: 10vw; height: 50vh; border-radius: 0 0 10vw 10vw;">
-  </div>
-  <div class="box" style="background: var(--nlesc-purple); position: absolute; right: 10vw; top: 0; width: 5vw; height: calc(25vh + 5vw); border-corner-shape: scoop; background: yellow; background: linear-gradient(45deg,  transparent 10vw, var(--nlesc-purple) 0) bottom left; background-image: radial-gradient(circle at 0 100%, rgba(204,0,0,0) 5vw, var(--nlesc-purple) 15px)">
+<div class="escience-purple-blob"></div>
+<div class="escience-blue-strip">
+  <div class="escience-footer">
   </div>
 </div>
-<div id="blue_strip" style="background-color: var(--nlesc-blue); transition: left 1s, right 1s; margin: 0; padding: 0; border-radius: 20vw 0 0 0; z-index: 2; position: absolute; right: -100vw; bottom: 0;">
-  <div id="footer" style="text-align: right; line-height: 130%; padding: 0; margin: 1vw 1vw 1vw 3vw; bottom: 0; right: 0;">
-  </div>
-</div>
-<svg id="right_e" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 272.549 662.141"  style="transition: right 1s, top 1s; position: absolute; top: 10vh; right: -4vw; width: 4vw; z-index: 3;">
+<svg class="escience-right-e" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 272.549 662.141">
   <path id="Path_88" data-name="Path 88" d="M342.892,527.031q17.52-21.911,45.055-35.264a133.418,133.418,0,0,1,36-11.063V357.814c-33.264,2.515-63.486,9.336-90.408,20.725q-52.012,21.874-88.269,58.407-47.551,46.277-70.694,111.421-23.2,65.132-23.177,141.8,0,77.95,25.652,142.459Q202.723,897.2,251.563,943.4a314.339,314.339,0,0,0,88.213,56.587q37.073,15.944,84.176,19.965V896.642a104.455,104.455,0,0,1-25.345-8.657,178.837,178.837,0,0,1-40.683-27.369Q334.157,838.7,322.27,805.822a202.364,202.364,0,0,1-11.888-69.4h113.57V625.625H309.123q1.256-31.6,8.759-54.767Q325.384,547.762,342.892,527.031Z" transform="translate(-151.403 -357.814)" fill="#fff"/>
 </svg>
-`;
-
-function insertCss(css) {
-  const style = document.createElement('style');
-  style.type = 'text/css';
-  style.innerHTML = css;
-  document.head.appendChild(style);
-}
-
-function insertDecoration() {
-  if ( window.location.search.match( /print-pdf/gi ) ) {
-    const backgrounds = document.getElementsByClassName('slide-background');
-    for (let i = 0; i < backgrounds.length; i++) {
-      backgrounds[i].insertAdjacentHTML("afterbegin", decoration_elements);
-    };
-  } else {
-    // for viewing slides
-    const reveal_div = document.querySelectorAll('div.reveal');
-    // TODO better do this loop with "forEach"
-    for (let i = 0; i < reveal_div.length; i++) {
-      reveal_div[i].insertAdjacentHTML("afterbegin", decoration_elements);
-    };
-    //$('#decoration').remove(); // without this the fadeIn/fadeOut below does not work. why is this necessary?
-  };
-  addDecorations();
-}
-
-Reveal.on( 'ready', event => {
-  insertCss(black_css);
-  insertCss(monokai_css);
-  insertCss(escience_css);
-  insertDecoration();
-
-  /* set events only after reveal is ready */
-  Reveal.on( 'slidechanged', event => {
-    if (overview_shown == false)
-    {
-      log("slide changed");
-      addDecorations();
-    }
-  });
-  Reveal.on( 'overviewshown', event => {
-    overview_shown = true;
-    removeDecorations();
-  });
-  Reveal.on( 'overviewhidden', event => {
-    overview_shown = false;
-    addDecorations();
-  });
-} );
-
-
-function setLogoStyle(style) {
-  //style must be one of {"logo_color","logo_white","logo_part_white"}
-
-  //unset everything
-  document.getElementById("logo_color").style.opacity = 0;
-  document.getElementById("logo_white").style.opacity = 0;
-  document.getElementById("logo_part_white").style.opacity = 0;
-
-  //set only what we want
-  document.getElementById(style).style.opacity = 1;
-};
-var overview_shown = false;
-function getOpacity(data_state) {
-  var opacity = 0.8;
-  for (let i = 0; i < 11; i++) {
-    if (data_state.includes(i)) { opacity = i/10; log("opacity set to " + opacity)}
-  };
-  return opacity
-};
-function addDecorations() {
-  log("set decorations")
-  let root = document.documentElement;
-
-
-  var currentSlide = Reveal.getCurrentSlide();
-  if (currentSlide.contains(currentSlide.querySelector('footer')))
-  {
-    document.getElementById("footer").innerHTML = currentSlide.querySelector('footer').innerHTML;
-    document.getElementById("blue_strip").style.right = 0;
-    log("footer (and blue_strip)");
-  } else {
-    document.getElementById("blue_strip").style.right = "-" + document.getElementById("blue_strip").offsetWidth + "px";
-    log("no footer");
-  };
-  if ( currentSlide.getAttribute('data-state') )
-  {
-    var data_state = currentSlide.getAttribute('data-state')
-    var opacity = getOpacity(data_state);
-    log("DS" + data_state)
-    // pre-set slide designs
-
-    // standard
-    if ( data_state.includes("standard"))
-    {
-      data_state += " logo yellow_flag white_overlay";
-    };
-
-    // two_pane
-    if ( data_state.includes("two_pane"))
-    {
-      data_state += " logo yellow_flag white_overlay blue_pane_right";
-    };
-
-    // about
-    if ( data_state.includes("about"))
-    {
-      data_state += " logo white_overlay blue_pane_left purple_half_circle_top purple_strip_bottom yellow_half_strip";
-    };
-
-    // touch
-    if ( data_state.includes("touch"))
-    {
-      data_state += " logo blue_overlay touch_pane purple_blob right_e_bottom";
-    };
-
-    // title
-    if ( data_state.includes("title"))
-    {
-      data_state += "  blue_overlay yellow_flag yellow_strip purple_half_circle_bottom purple_blob right_e_top";
-    };
-
-    // individual elements
-
-    // purple overlay
-    if ( data_state.includes("purple_overlay"))
-    {
-      document.getElementById("purple_overlay").style.opacity = opacity;
-      document.getElementById("purple_overlay").style.transform = "translateY(0)";
-      document.getElementById("logo_color").style.opacity = 0;
-      document.getElementById("logo_white").style.opacity = 0;
-      document.getElementById("logo_part_white").style.opacity = 1;
-      currentSlide.classList.remove("has-light-background");
-      root.style.setProperty("--link-color", "var(--nlesc-yellow)");
-      root.style.setProperty("--link-color-hover", "var(--nlesc-blue)");
-      log("purple overlay");
-    } else {
-      document.getElementById("purple_overlay").style.opacity = 0;
-      log("no purple overlay");
-    };
-
-    // white overlay
-    if ( data_state.includes("white_overlay"))
-    {
-      document.getElementById("white_overlay").style.opacity = opacity;
-      document.getElementById("white_overlay").style.transform = "translateY(0)";
-      document.getElementById("logo_color").style.opacity = 1;
-      document.getElementById("logo_white").style.opacity = 0;
-      document.getElementById("logo_part_white").style.opacity = 0;
-      currentSlide.classList.add("has-light-background");
-      root.style.setProperty("--link-color", "var(--nlesc-blue)");
-      root.style.setProperty("--link-color-hover", "var(--nlesc-yellow)");
-      log("white overlay");
-    } else {
-      document.getElementById("white_overlay").style.opacity = 0;
-      log("no white overlay");
-    };
-
-    // black overlay
-    if ( data_state.includes("black_overlay"))
-    {
-      document.getElementById("black_overlay").style.opacity = opacity;
-      document.getElementById("black_overlay").style.transform = "translateY(0)";
-      document.getElementById("logo_color").style.opacity = 0;
-      document.getElementById("logo_white").style.opacity = 0;
-      document.getElementById("logo_part_white").style.opacity = 1;
-      currentSlide.classList.remove("has-light-background");
-      root.style.setProperty("--link-color", "var(--nlesc-yellow)");
-      root.style.setProperty("--link-color-hover", "var(--nlesc-blue)");
-      log("black overlay");
-    } else {
-      document.getElementById("black_overlay").style.opacity = 0;
-      log("no black overlay");
-    };
-
-    // blue overlay
-    if ( data_state.includes("blue_overlay"))
-    {
-      document.getElementById("blue_overlay").style.opacity = opacity;
-      document.getElementById("blue_overlay").style.transform = "translateY(0)";
-      document.getElementById("logo_color").style.opacity = 0;
-      document.getElementById("logo_white").style.opacity = 1;
-      document.getElementById("logo_part_white").style.opacity = 0;
-      currentSlide.classList.remove("has-light-background");
-      root.style.setProperty("--link-color", "var(--nlesc-yellow)");
-      root.style.setProperty("--link-color-hover", "var(--nlesc-purple)");
-      log("blue overlay");
-    } else {
-      document.getElementById("blue_overlay").style.opacity = 0;
-      log("no blue overlay");
-    };
-
-    // blue pane right
-    if ( data_state.includes("blue_pane_right"))
-    {
-      document.getElementById("blue_pane_right").style.opacity = 1;
-      document.getElementById("blue_pane_right").style.transform = "translateY(0)";
-      currentSlide.classList.remove("has-dark-background");
-      currentSlide.classList.add("has-light-background");
-      log("blue_pane_right");
-    } else {
-      document.getElementById("blue_pane_right").style.opacity = 0;
-      log("no blue_pane_right");
-    };
-
-    // blue pane left
-    if ( data_state.includes("blue_pane_left"))
-    {
-      document.getElementById("blue_pane_left").style.opacity = 1;
-      document.getElementById("blue_pane_left").style.transform = "translateY(0)";
-      setLogoStyle("logo_white");
-      currentSlide.classList.remove("has-dark-background");
-      currentSlide.classList.add("has-light-background");
-      log("blue_pane_left");
-    } else {
-      document.getElementById("blue_pane_left").style.opacity = 0;
-      log("no blue_pane_left");
-    };
-
-    // touch pane
-    if ( data_state.includes("touch_pane"))
-    {
-      document.getElementById("touch_pane").style.opacity = 1;
-      document.getElementById("touch_pane").style.transform = "translateY(0)";
-      setLogoStyle("logo_color");
-      currentSlide.classList.remove("has-light-background");
-      currentSlide.classList.add("has-dark-background");
-      log("touch_pane");
-    } else {
-      document.getElementById("touch_pane").style.opacity = 0;
-      log("no touch_pane");
-    };
-
-    // logo
-    if ( data_state.includes("logo"))
-    {
-      document.getElementById("logo_color").style.left = 3 + "vw";
-      document.getElementById("logo_part_white").style.left = 3 + "vw";
-      document.getElementById("logo_white").style.left = 3 + "vw";
-      log("logo");
-    } else {
-      document.getElementById("logo_color").style.left = -12 + "vw";
-      document.getElementById("logo_part_white").style.left = -12 + "vw";
-      document.getElementById("logo_white").style.left = -12 + "vw";
-      log("no logo");
-    };
-
-    // yellow strip
-    if ( data_state.includes("yellow_strip"))
-    {
-      document.getElementById("yellow_strip").style.left = 0;
-      log("yellow_strip");
-    } else {
-      document.getElementById("yellow_strip").style.left = -10 + "vw";
-      log("no yellow_strip");
-    };
-
-    // yellow flag
-    if ( data_state.includes("yellow_flag"))
-    {
-      document.getElementById("yellow_flag").style.left = 0;
-      log("yellow_flag");
-    } else {
-      document.getElementById("yellow_flag").style.left = -10 + "vh";
-      log("no yellow_flag");
-    };
-
-    // purple half circle top
-    if ( data_state.includes("purple_half_circle_top"))
-    {
-      document.getElementById("purple_half_circle_top").style.top = 0;
-      setLogoStyle("logo_part_white");
-      log("purple_half_circle_top");
-    } else {
-      document.getElementById("purple_half_circle_top").style.top = -17 + "vw";
-      log("no purple_half_circle_top");
-    };
-
-    // purple half circle bottom
-    if ( data_state.includes("purple_half_circle_bottom"))
-    {
-      document.getElementById("purple_half_circle_bottom").style.bottom = 0;
-      document.getElementById("yellow_flag").style.bottom = 20 + "vh";
-      log("purple_half_circle_bottom");
-    } else {
-      document.getElementById("purple_half_circle_bottom").style.bottom = -10 + "vw";
-      document.getElementById("yellow_flag").style.bottom = 5 + "vh";
-      log("no purple_half_circle_bottom");
-    };
-
-    // purple strip bottom
-    if ( data_state.includes("purple_strip_bottom"))
-    {
-      document.getElementById("purple_strip_bottom").style.bottom = 0;
-      log("purple_strip_bottom");
-    } else {
-      document.getElementById("purple_strip_bottom").style.bottom = -10 + "vw";
-      log("no purple_strip_bottom");
-    };
-
-    // yellow_half_strip
-    if ( data_state.includes("yellow_half_strip"))
-    {
-      document.getElementById("yellow_half_strip").style.bottom = 0;
-      log("yellow_half_strip");
-    } else {
-      document.getElementById("yellow_half_strip").style.bottom = -25 + "vw";
-      log("no yellow_half_strip");
-    };
-
-    // purple blob
-    if ( data_state.includes("purple_blob"))
-    {
-      document.getElementById("purple_blob").style.top = 0;
-      log("purple_blob");
-    } else {
-      document.getElementById("purple_blob").style.top = -50 + "vh";
-      log("no purple_blob");
-    };
-
-    // right_e
-    if ( data_state.includes("right_e_top"))
-    {
-      document.getElementById("right_e").style.top = 10 + "vh";
-      document.getElementById("right_e").style.right = 0;
-      log("right_e_top");
-    } else if ( data_state.includes("right_e_bottom")){
-      document.getElementById("right_e").style.top = 60 + "vh";
-      document.getElementById("right_e").style.right = 0;
-      log("right_e_bottom");
-    } else {
-      document.getElementById("right_e").style.right = -4 + "vw";
-      log("no right_e");
-    };
-
-    // clear the background so that the overlays don't interfere
-    // with underlying iframe
-    if ( data_state.includes("clear_background"))
-    {
-      document.getElementById("purple_overlay").style.transform = "translateY(100vh)";
-      document.getElementById("white_overlay").style.transform = "translateY(100vh)";
-      document.getElementById("black_overlay").style.transform = "translateY(100vh)";
-      document.getElementById("blue_overlay").style.transform = "translateY(100vh)";
-      document.getElementById("blue_pane_right").style.transform = "translateY(100vh)";
-      document.getElementById("blue_pane_left").style.transform = "translateY(100vh)";
-      document.getElementById("touch_pane").style.transform = "translateY(100vh)";
-    };
-  }
-  else
-  {
-    log("nothing special")
-  };
-};
-
-function removeDecorations() {
-  log("removeDecorations")
-  document.getElementById("purple_overlay").style.opacity = 0;
-  document.getElementById("white_overlay").style.opacity = 0;
-  document.getElementById("black_overlay").style.opacity = 0;
-  document.getElementById("blue_overlay").style.opacity = 0;
-  document.getElementById("blue_pane_right").style.opacity = 0;
-  document.getElementById("blue_pane_left").style.opacity = 0;
-  document.getElementById("touch_pane").style.opacity = 0;
-  document.getElementById("logo_color").style.left = -12 + "vw";
-  document.getElementById("logo_part_white").style.left = -12 + "vw";
-  document.getElementById("logo_white").style.left = -12 + "vw";
-  document.getElementById("yellow_strip").style.left = -10 + "vw";
-  document.getElementById("yellow_flag").style.left = -10 + "vh";
-  document.getElementById("purple_half_circle_top").style.top = -17 + "vw";
-  document.getElementById("purple_half_circle_bottom").style.bottom = -10 + "vw";
-  document.getElementById("purple_strip_bottom").style.bottom = -10 + "vw";
-  document.getElementById("yellow_half_strip").style.bottom = -25 + "vw";
-  document.getElementById("purple_blob").style.top = -50 + "vh";
-  document.getElementById("right_e").style.right = -4 + "vw";
-  document.getElementById("blue_strip").style.right = "-" + document.getElementById("blue_strip").offsetWidth + "px";
-};
-
-}
+</div>`;

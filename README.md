@@ -22,6 +22,23 @@ Optionally, the presentation can be refreshed whenever you write changes to the 
 - Serve your presentation with `python serve.py`, it will serve the presentation on default port `8000`
   - Tip: If needed, specify a different port as a command line argument, like `python serve.py 12345`
 
+## eScience Center theme
+The theme lives in `dist/plugin/escience_theme`, a copy of the
+[`escience_theme`](https://www.npmjs.com/package/escience_theme) npm package;
+its `package.json` says which version. Its `README.md` explains the slide
+looks (`data-state`, e.g. `title` or `standard`) and the layout classes
+(`.columns`, `.card`, `.stepper`), which the example slides in `index.html`
+use.
+
+To update to another version, run in this folder (needs `npm`):
+
+```sh
+v=0.3.0
+npm pack escience_theme@$v && tar xzf escience_theme-$v.tgz \
+  && rsync -a --delete package/ dist/plugin/escience_theme/ \
+  && rm -r package escience_theme-$v.tgz
+```
+
 ## Deployment
 - In your GitHub repo, go to Settings -> Pages. Select branch `main`, and click on "Save". Your presentation is now being deployed.
 - On the front page of your repo, click on the cog ⚙️ next to "About" (top right).

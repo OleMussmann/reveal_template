@@ -1,0 +1,448 @@
+@import url('https://fonts.googleapis.com/css2?family=Assistant:wght@200..800&family=Fira+Code:wght@300..700&family=Nunito:ital,wght@0,200..1000;1,200..1000&display=swap');
+@import url('https://fonts.googleapis.com/icon?family=Material+Icons');
+/*********************************************
+ * COLORS
+ *********************************************/
+
+:root {
+  --nlesc-blue: #009DDD;
+  --nlesc-purple: #380339;
+  --nlesc-yellow: #FFB213;
+  --light-gray: #D8D8D8;
+  --dark-gray: #2b2b2b;
+  --gray-transparent: rgba(128, 128, 128, .5);
+
+  --link-color: var(--nlesc-purple);
+  --link-color-hover: var(--nlesc-yellow);
+
+  /* reveal.js theme variables (black.css reads these; this file loads after it) */
+  --r-main-font: "Assistant", sans-serif;
+  --r-heading-font: "Nunito", sans-serif;
+  --r-heading-font-weight: 700;
+  --r-heading-text-transform: none;
+  --r-code-font: "Fira Code", monospace;
+  --r-selection-color: #fff;
+  --r-selection-background-color: var(--nlesc-purple);
+}
+
+/*********************************************
+ * GLOBAL STYLES
+ *
+ * Fonts are set through the --r-* variables above, which the reveal.js
+ * theme applies to body text, headings and code. Slide content can
+ * override font and weight with ordinary CSS.
+ * Rules are scoped to .reveal so that the page around an embedded deck
+ * (e.g. a NEBULA site) keeps its own typography. :where() gives a rule
+ * the specificity of its bare element selector, so class rules such as
+ * .hljs (code highlighting) take precedence.
+ *********************************************/
+
+.reveal {
+  font-size: 36px; }  /* make stuff smaller */
+
+/* reveal.css gives these Helvetica; keep them in the theme font */
+.reveal .speaker-notes,
+.reveal .slide-number,
+.reveal .r-overlay {
+  font-family: var(--r-main-font);
+}
+
+.reveal h4, .reveal h5, .reveal h6 {
+  font-family: var(--r-main-font);
+}
+
+:where(.reveal) code {
+  font-weight: 500;
+  background-color: var(--gray-transparent);
+}
+
+
+/*********************************************
+ * CUSTOM COLORS
+ *********************************************/
+.primary { color: var(--nlesc-blue) !important; }
+.secondary { color: var(--nlesc-purple) !important; }
+.tertiary { color: var(--light-gray) !important; }
+
+/*********************************************
+ * LINKS
+ *********************************************/
+.reveal a {
+  color: var(--link-color); }
+
+.reveal a:hover {
+  color: var(--link-color-hover); }
+
+/* escience.js marks each slide with the background its links sit on */
+.reveal section[data-escience-links="on-light"] {
+  --link-color: var(--nlesc-blue);
+  --link-color-hover: var(--nlesc-yellow); }
+
+.reveal section[data-escience-links="on-dark"] {
+  --link-color: var(--nlesc-yellow);
+  --link-color-hover: var(--nlesc-blue); }
+
+.reveal section[data-escience-links="on-blue"] {
+  --link-color: var(--nlesc-yellow);
+  --link-color-hover: var(--nlesc-purple); }
+
+.reveal .roll span:after {
+  color: #fff;
+  background: var(--nlesc-blue); }
+
+/*********************************************
+ * IMAGES
+ *********************************************/
+.reveal section img { /* undo stupid img frames */
+  background: none;
+  border: none;
+  box-shadow: none;
+}
+
+.reveal a:hover img {
+  border-color: var(--nlesc-blue); }
+
+/*********************************************
+ * HIGHLIGHT COLORS
+ *********************************************/
+
+.reveal .slides section .fragment.highlight-blue.visible {
+  color: var(--nlesc-blue); }
+
+/*********************************************
+ * NAVIGATION CONTROLS
+ *********************************************/
+.reveal .controls {
+  color: var(--nlesc-yellow); }
+
+/*********************************************
+ * PROGRESS BAR
+ *********************************************/
+.reveal .progress {
+  background: rgba(0, 0, 0, 0.2);
+  color: var(--nlesc-yellow); }
+
+.reveal .progress span {
+  background: var(--nlesc-yellow);
+  transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985); }
+
+/*********************************************
+ * LAYOUT
+ *
+ * .columns   grid, two equal columns unless --columns gives a
+ *            grid-template-columns value ("7fr 3fr", "repeat(3, 1fr)");
+ *            further children wrap into new rows. --gap sets the gap.
+ *            Combine with reveal.js's .items-center etc. for alignment.
+ * .card      padded box in light gray, with even spacing between its
+ *            children; .bordered: border only; .highlight: blue border.
+ *            A card inside a filled card is white.
+ * .stepper   steps that appear one by one: .step elements, the first one
+ *            plain, later ones fragments. The current step (the last one
+ *            shown, marked .current-step by escience.js) gets a blue
+ *            border if it has one (e.g. .step.card), and
+ *            only its .detail is shown: the .detail right after the step or
+ *            inside it. When the steps are cards, the stepper's other rows
+ *            line up with the cards' content. .preview shows upcoming steps
+ *            faded instead of hidden. --columns and --gap on the stepper
+ *            apply to its .columns rows.
+ *
+ * --columns and --gap apply only to the element they are set on, so a
+ * nested .columns starts from the defaults again.
+ *********************************************/
+@property --columns { syntax: "*"; inherits: false; }
+@property --gap { syntax: "*"; inherits: false; }
+
+.reveal .columns {
+  display: grid;
+  grid-template-columns: var(--columns, repeat(2, minmax(0, 1fr)));
+  gap: var(--gap, .5em);
+}
+
+.reveal .card {
+  padding: .4em .6em;  /* the stepper's row alignment below uses .6em */
+  border: 2px solid var(--light-gray);
+  border-radius: 8px;
+  background-color: var(--light-gray);
+  color: #222;
+  text-align: start;
+  --r-heading-color: #222;
+  --link-color: var(--nlesc-blue);
+  --link-color-hover: var(--nlesc-purple);
+}
+.reveal .card > * { margin-block: 0; }
+.reveal .card:not(.columns) > * + * { margin-top: .4em; }
+.reveal .card:not(.bordered) .card:not(.bordered) {
+  border-color: white;
+  background-color: white;
+}
+.reveal .card.bordered {
+  background-color: transparent;
+  color: inherit;
+  --r-heading-color: inherit;
+  --link-color: inherit;
+  --link-color-hover: inherit;
+}
+.reveal .card.highlight { border-color: var(--nlesc-blue); }
+
+.reveal .stepper { text-align: start; }
+.reveal .stepper > * { --columns: inherit; --gap: inherit; }
+.reveal .stepper > .step.card { margin-block: .4em; }
+.reveal .stepper:has(> .step.card) > :not(.step) { padding-inline: calc(.6em + 2px); }
+
+/* escience.js marks the current step with .current-step */
+.reveal .stepper .step.current-step { border-color: var(--nlesc-blue); }
+.reveal .stepper .step:not(.current-step) + .detail,
+.reveal .stepper .step:not(.current-step) .detail {
+  display: none;
+}
+.reveal .slides section .stepper.preview .step.fragment:not(.visible) {
+  opacity: .35;
+  visibility: inherit;
+}
+
+/*********************************************
+ * FOOTER
+ *********************************************/
+
+.slides .footer {
+  font-size: x-small !important;
+  width: 100%;
+  clear: both;
+/*  padding: 50px 0 0 0;*/
+}
+
+/*********************************************
+ * PRINT BACKGROUND
+ *********************************************/
+@media print {
+  .backgrounds {
+    background-color: var(--dark-gray); } }
+
+/*********************************************
+ * DECORATIONS
+ *
+ * escience.js inserts one .escience-decorations root per deck (per page in
+ * print view) and sets on it:
+ *   data-show   space-separated names of the decorations to show
+ *   data-logo   color | white | part-white
+ *   --escience-overlay-opacity
+ * Hidden decorations sit outside the slide; shown ones slide or fade in.
+ * The root has no box of its own, so the decorations are positioned
+ * against .reveal (or the print page background).
+ *********************************************/
+.escience-decorations { display: contents; }
+
+.escience-decorations > * { position: absolute; z-index: 2; }
+
+/* Full-size overlays, under everything else */
+.escience-purple-overlay,
+.escience-blue-overlay,
+.escience-white-overlay,
+.escience-black-overlay {
+  inset: 0;
+  z-index: 1;
+  opacity: 0;
+  transition: opacity 1s; }
+.escience-purple-overlay { background-color: var(--nlesc-purple); }
+.escience-blue-overlay   { background-color: var(--nlesc-blue); }
+.escience-white-overlay  { background-color: white; }
+.escience-black-overlay  { background-color: black; }
+
+/* Panes */
+.escience-blue-pane-left,
+.escience-blue-pane-right,
+.escience-touch-pane {
+  top: 0;
+  bottom: 0;
+  opacity: 0;
+  transition: opacity 1s; }
+.escience-blue-pane-left  { left: 0; right: 50%; background-color: var(--nlesc-blue); }
+.escience-blue-pane-right { left: 50%; right: 0; background-color: var(--nlesc-blue); }
+.escience-touch-pane {
+  left: 0;
+  right: 66.6%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: white; }
+.escience-touch-pane h1 { color: black; text-align: left; }
+
+/* Logo, top left; data-logo picks the variant */
+.escience-logo {
+  top: 1.5vh;
+  left: -12vw;
+  opacity: 0;
+  transition: opacity 1s, left 1s; }
+.escience-logo svg { width: 12vw; }
+
+/* Shapes */
+.escience-yellow-strip {
+  left: -10vw;
+  bottom: 0;
+  width: 10vw;
+  height: 70vh;
+  border-radius: 10vw 10vw 0 0;
+  background-color: var(--nlesc-yellow);
+  transition: left 1s; }
+
+.escience-yellow-flag {
+  left: -10vh;
+  bottom: 5vh;
+  width: 10vh;
+  height: 12vh;
+  border-radius: 0 6vh 6vh 0;
+  z-index: 3;
+  background-color: var(--nlesc-yellow);
+  transition: left 1s, bottom 1s; }
+.escience-yellow-flag svg { position: absolute; height: 10vh; margin: 1vh 0; }
+
+.escience-purple-half-circle-top {
+  left: 0;
+  top: -17vw;
+  width: 34vw;
+  height: 17vw;
+  border-radius: 0 0 20vw 20vw;
+  background-color: var(--nlesc-purple);
+  transition: top 1s; }
+
+.escience-purple-half-circle-bottom {
+  left: 0;
+  bottom: -10vw;
+  width: 20vw;
+  height: 10vw;
+  border-radius: 20vw 20vw 0 0;
+  background-color: var(--nlesc-purple);
+  transition: bottom 1s; }
+.escience-purple-half-circle-bottom svg { position: absolute; bottom: 2vw; left: 6vw; width: 8vw; }
+
+.escience-purple-strip-bottom {
+  right: calc(50% + 17vw);
+  bottom: -10vw;
+  width: 16vw;
+  height: 10vw;
+  border-radius: 20vw 20vw 0 0;
+  background-color: var(--nlesc-purple);
+  transition: bottom 1s; }
+
+.escience-yellow-half-strip {
+  right: 50%;
+  bottom: -25vw;
+  width: 17vw;
+  height: 25vw;
+  border-radius: 20vw 0 0 0;
+  background-color: var(--nlesc-yellow);
+  transition: bottom 1s; }
+
+.escience-purple-blob {
+  /* top right: a long and a short drop, joined by a concave curve */
+  right: 0;
+  top: -50vh;
+  width: 10vw;
+  height: 50vh;
+  border-radius: 0 0 5vw 5vw;
+  background-color: var(--nlesc-purple);
+  transition: top 1s; }
+.escience-purple-blob::before,
+.escience-purple-blob::after {
+  content: "";
+  position: absolute;
+  right: calc(100% - 1px);  /* overlap the long drop by 1px, so no seam shows */
+  background-color: var(--nlesc-purple); }
+.escience-purple-blob::before {
+  /* the short drop; its inner corner continues into the curve */
+  top: 0;
+  width: calc(10vw + 1px);
+  height: 25vh;
+  border-bottom-left-radius: 5vw; }
+.escience-purple-blob::after {
+  /* the curve: a 5vw square below the short drop, cut out around its
+     bottom left corner; the 1px gradient step smooths the edge */
+  top: calc(25vh - 1px);
+  width: calc(5vw + 1px);
+  height: calc(5vw + 1px);
+  background: radial-gradient(circle at 0 100%, transparent 5vw, var(--nlesc-purple) calc(5vw + 1px)); }
+
+.escience-right-e {
+  top: 10vh;
+  right: -4vw;
+  width: 4vw;
+  z-index: 3;
+  transition: right 1s, top 1s; }
+
+/* Footer strip, bottom right; holds the slide's <footer> content */
+.escience-blue-strip {
+  right: 0;
+  bottom: 0;
+  border-radius: 20vw 0 0 0;
+  background-color: var(--nlesc-blue);
+  transform: translateX(100%);
+  transition: transform 1s; }
+.escience-footer {
+  margin: 1vw 1vw 1vw 3vw;
+  text-align: right;
+  line-height: 130%; }
+.reveal .escience-footer a { color: white; text-decoration: underline; }
+.reveal .escience-footer a:hover { color: var(--nlesc-purple); }
+
+/* Shown */
+[data-show~="purple_overlay"] .escience-purple-overlay,
+[data-show~="blue_overlay"] .escience-blue-overlay,
+[data-show~="white_overlay"] .escience-white-overlay,
+[data-show~="black_overlay"] .escience-black-overlay {
+  opacity: var(--escience-overlay-opacity, 1); }
+
+[data-show~="blue_pane_left"] .escience-blue-pane-left,
+[data-show~="blue_pane_right"] .escience-blue-pane-right,
+[data-show~="touch_pane"] .escience-touch-pane { opacity: 1; }
+
+[data-show~="logo"] .escience-logo { left: 3vw; }
+[data-logo="color"] .escience-logo-color,
+[data-logo="white"] .escience-logo-white,
+[data-logo="part-white"] .escience-logo-part-white { opacity: 1; }
+
+[data-show~="yellow_strip"] .escience-yellow-strip { left: 0; }
+[data-show~="yellow_flag"] .escience-yellow-flag { left: 0; }
+[data-show~="purple_half_circle_bottom"] .escience-yellow-flag { bottom: 20vh; }
+[data-show~="purple_half_circle_top"] .escience-purple-half-circle-top { top: 0; }
+[data-show~="purple_half_circle_bottom"] .escience-purple-half-circle-bottom { bottom: 0; }
+[data-show~="purple_strip_bottom"] .escience-purple-strip-bottom { bottom: 0; }
+[data-show~="yellow_half_strip"] .escience-yellow-half-strip { bottom: 0; }
+[data-show~="purple_blob"] .escience-purple-blob { top: 0; }
+[data-show~="right_e_top"] .escience-right-e { top: 10vh; right: 0; }
+[data-show~="right_e_bottom"] .escience-right-e { top: 60vh; right: 0; }
+[data-show~="footer"] .escience-blue-strip { transform: none; }
+
+/* clear_background moves overlays and panes away, e.g. for an interactive
+   background iframe */
+[data-show~="clear_background"] :is(.escience-purple-overlay, .escience-blue-overlay,
+  .escience-white-overlay, .escience-black-overlay, .escience-blue-pane-left,
+  .escience-blue-pane-right, .escience-touch-pane) {
+  transform: translateY(100vh); }
+
+/* overview: each thumbnail's background carries its own decorations, shown
+   in their final state and clipped to the thumbnail */
+.reveal.overview .backgrounds .slide-background { overflow: hidden; }
+.reveal.overview .backgrounds .escience-decorations > * { transition: none; }
+
+/*********************************************
+ * SLIDE CONTENT ABOVE DECORATIONS
+ *********************************************/
+/* print view: each page holds its background (with decorations), slide,
+   notes and slide number side by side */
+html.reveal-print .reveal .pdf-page > :is(section, .speaker-notes-pdf, .slide-number-pdf) {
+  z-index: 10;
+}
+
+.slides {
+	/* puts the slide content above overlays and decorations*/
+	z-index: 10 !important;
+}
+
+.speaker-notes {
+	/* puts the slide content above overlays and decorations*/
+	z-index: 3 !important;
+}
+
+:where(.reveal) footer {
+	display: none !important;
+}
